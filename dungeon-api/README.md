@@ -56,8 +56,15 @@ Arrêtez le serveur et supprimez le fichier `dungeon.db` : il sera recréé au p
 
 ## Notre rendu
 
-- **Membres du groupe :**
-- **Lien du dépôt Git :**
-- **Palier atteint :** (1, 2, 3 ou 4)
+- **Membres du groupe :** Simon Pruvot, Simon Beausire, Kevin Bura
+- **Lien du dépôt Git :** https://github.com/Simon-Pruvot/Dungeon-as-a-Service
+- **Palier atteint :** 4
 - **Bonus réalisés :**
+  - B-1 client terminal : `python client/play.py --help` (token sauvegardé dans `.token`)
+  - B-2 classement : `GET /leaderboard` (public)
+  - B-3 tests : `python -m pytest` depuis ce dossier (base SQLite temporaire)
+  - B-5 journalisation : déplacements et tours de combat tracés dans la console (logger `dungeon`)
 - **Ce qui ne fonctionne pas / difficultés :**
+  - B-4 PostgreSQL non réalisé.
+  - La clé JWT se règle avec la variable d'environnement `JWT_SECRET_KEY` (valeur par défaut pour le dev).
+  - Si un `dungeon.db` des paliers 1-2 existe déjà, il faut le supprimer : la colonne `owner_id` et la table `player` ont été ajoutées au palier 4.
