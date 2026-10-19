@@ -16,7 +16,7 @@ Swagger : http://127.0.0.1:8000/docs
 
 ## Notre rendu
 
-- **Membres du groupe :** Simon Pruvot, Simon Beausire, Kevin Bura
+- **Membres du groupe :** Kevin-Bura, Simon-Pruvot, simon-Beausire
 - **Lien du dépôt Git :** https://github.com/Simon-Pruvot/Dungeon-as-a-Service
 - **Palier atteint :** 4
 - **Bonus réalisés :**
