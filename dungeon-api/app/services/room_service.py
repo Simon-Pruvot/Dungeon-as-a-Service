@@ -1,11 +1,16 @@
 """Logique du donjon : description de la salle courante et déplacement du héros."""
 
+import logging
+
 from fastapi import HTTPException
 from sqlmodel import Session
 
 from app.models.hero import Hero
 from app.schemas.room import MonsterRead, RoomRead
 from app.services.dungeon_map import get_monster_of_room, get_room
+from app.services.hero_service import ensure_alive, ensure_not_in_combat
+
+logger = logging.getLogger("dungeon")
 
 
 def describe_room(hero: Hero) -> RoomRead:
@@ -31,6 +36,9 @@ def describe_room(hero: Hero) -> RoomRead:
 
 
 def move_hero(session: Session, hero: Hero, direction: str) -> RoomRead:
+    ensure_alive(hero)
+    ensure_not_in_combat(hero)
+
     room = get_room(hero.salle_actuelle)
     destination = room["exits"].get(direction)
     if destination is None:
@@ -40,11 +48,12 @@ def move_hero(session: Session, hero: Hero, direction: str) -> RoomRead:
         )
 
     hero.salle_actuelle = destination
-
+    # le donjon est maudit : le monstre réapparaît à chaque entrée
     monster = get_monster_of_room(destination)
     hero.monstre_pv = monster["hp"] if monster is not None else None
 
     session.add(hero)
     session.commit()
     session.refresh(hero)
+    logger.info("Héros %s se déplace vers %s (%s)", hero.id, destination, direction)
     return describe_room(hero)

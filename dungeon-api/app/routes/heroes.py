@@ -1,12 +1,13 @@
-"""Routes des héros : uniquement la couche HTTP, la logique est dans le service."""
+"""Routes des héros : uniquement la couche HTTP, la logique est dans les services."""
 
 from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
 from app.database import get_session
+from app.schemas.combat import AttackResult
 from app.schemas.hero import HeroCreate, HeroRead
 from app.schemas.room import MoveRequest, RoomRead
-from app.services import hero_service, room_service
+from app.services import combat_service, hero_service, room_service
 
 router = APIRouter(prefix="/heroes", tags=["Héros"])
 
@@ -39,3 +40,16 @@ def read_room(hero_id: int, session: Session = Depends(get_session)):
 def move_hero(hero_id: int, data: MoveRequest, session: Session = Depends(get_session)):
     hero = hero_service.get_hero(session, hero_id)
     return room_service.move_hero(session, hero, data.direction)
+
+
+@router.post("/{hero_id}/attack", response_model=AttackResult)
+def attack(hero_id: int, session: Session = Depends(get_session)):
+    hero = hero_service.get_hero(session, hero_id)
+    return combat_service.attack(session, hero)
+
+
+@router.post("/{hero_id}/rest", response_model=HeroRead)
+async def rest(hero_id: int, session: Session = Depends(get_session)):
+    hero = hero_service.get_hero(session, hero_id)
+    hero = await combat_service.rest(session, hero)
+    return hero_service.to_hero_read(hero)
