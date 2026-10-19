@@ -5,29 +5,42 @@ from sqlmodel import Session, select
 
 from app.domain.heros import creer_heros
 from app.models.hero import Hero
+from app.models.player import Player
 from app.schemas.hero import HeroCreate, HeroRead
 from app.services.dungeon_map import START_ROOM
 
 
-def create_hero(session: Session, data: HeroCreate) -> Hero:
+def create_hero(session: Session, data: HeroCreate, player: Player) -> Hero:
     pv_max = creer_heros(data.classe, data.force, data.agilite, data.intelligence).pv_max
-    hero = Hero(**data.model_dump(), pv=pv_max, pv_max=pv_max, salle_actuelle=START_ROOM)
+    hero = Hero(
+        **data.model_dump(), pv=pv_max, pv_max=pv_max, salle_actuelle=START_ROOM, owner_id=player.id
+    )
     session.add(hero)
     session.commit()
     session.refresh(hero)
     return hero
 
 
-def list_heroes(session: Session) -> list[Hero]:
-    return list(session.exec(select(Hero)).all())
+def list_heroes(session: Session, player: Player) -> list[Hero]:
+    return list(session.exec(select(Hero).where(Hero.owner_id == player.id)).all())
 
 
-def get_hero(session: Session, hero_id: int) -> Hero:
+def leaderboard(session: Session) -> list[Hero]:
+    query = select(Hero).order_by(Hero.victoire.desc(), Hero.or_.desc()).limit(10)
+    return list(session.exec(query).all())
+
+
+def get_hero(session: Session, hero_id: int, player: Player) -> Hero:
     hero = session.get(Hero, hero_id)
     if hero is None:
         raise HTTPException(
             status_code=404,
             detail={"error": "HERO_NOT_FOUND", "message": f"Aucun héros avec l'id {hero_id}."},
+        )
+    if hero.owner_id != player.id:
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "NOT_YOUR_HERO", "message": "Ce héros appartient à un autre joueur."},
         )
     return hero
 

@@ -1,10 +1,10 @@
-"""Table des heros"""
+"""Table des héros."""
 
 from sqlmodel import Field, SQLModel
 
 
 class Hero(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)  
+    id: int | None = Field(default=None, primary_key=True)
     nom: str
     classe: str
     force: int
@@ -14,5 +14,6 @@ class Hero(SQLModel, table=True):
     pv_max: int
     salle_actuelle: str
     or_: int = 0
-    monstre_pv: int | None = None  
+    monstre_pv: int | None = None
     victoire: bool = False
+    owner_id: int | None = Field(default=None, foreign_key="player.id")

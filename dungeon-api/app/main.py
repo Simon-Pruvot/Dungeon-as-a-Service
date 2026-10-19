@@ -5,20 +5,23 @@ Lancer le serveur depuis la racine du projet :
 Puis ouvrir http://127.0.0.1:8000/docs
 """
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from app.database import create_db_and_tables
 
-# Les modèles de tables doivent être importés pour que SQLModel les connaisse
+# les tables doivent être importées avant create_db_and_tables()
 from app.models.hero import Hero  # noqa: F401
-from app.routes import heroes
+from app.models.player import Player  # noqa: F401
+from app.routes import auth, heroes, leaderboard
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(message)s")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Exécuté une fois au démarrage du serveur : crée les tables si besoin
     create_db_and_tables()
     yield
 
@@ -26,14 +29,16 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Dungeon as a Service",
     description="Moteur de jeu de rôle textuel — Pixel Crypt",
-    version="0.1.0",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
+app.include_router(auth.router)
 app.include_router(heroes.router)
+app.include_router(leaderboard.router)
 
 
-@app.get("/health", tags=["Système"])
+@app.get("/health", tags=["Système"], response_model=dict[str, str])
 def health() -> dict:
     """Vérifie que le serveur répond."""
     return {"status": "ok", "message": "Le donjon vous attend..."}
